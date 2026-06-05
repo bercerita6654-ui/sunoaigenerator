@@ -131,8 +131,8 @@
                     Hasil Prompt
                 </h2>
                 
-                <div class="flex-grow bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-4 sm:mb-5 overflow-y-auto whitespace-pre-wrap font-mono text-xs sm:text-sm text-gray-700 shadow-inner min-h-[180px] sm:min-h-[250px] relative">
-                    <div id="outputArea"></div>
+                <div class="flex-grow bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-4 sm:mb-5 overflow-y-auto font-mono text-xs sm:text-sm text-gray-700 shadow-inner min-h-[180px] sm:min-h-[250px] relative">
+                    <div id="generatedContent" class="w-full flex flex-col gap-4 z-10 relative"></div>
                     <div id="placeholderText" class="absolute inset-0 flex items-center justify-center p-4 sm:p-6 text-center">
                         <span class="text-gray-400 italic text-xs sm:text-sm">Mulai isi parameter di sebelah kiri...</span>
                     </div>
@@ -141,7 +141,7 @@
                 <div class="space-y-3">
                     <button id="copyBtn" disabled class="w-full py-3 sm:py-3.5 px-4 rounded-xl font-bold text-white shadow-md transition-all duration-200 flex justify-center items-center text-sm sm:text-base bg-gray-300 cursor-not-allowed shadow-none">
                         <svg id="copyIcon" class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                        <span id="copyText">Salin Prompt</span>
+                        <span id="copyText">Salin Semua (Gabungan)</span>
                     </button>
 
                     <button id="saveBtn" disabled class="w-full py-2.5 sm:py-3 px-4 rounded-xl font-bold transition-all duration-200 flex justify-center items-center text-sm sm:text-base bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200">
@@ -152,8 +152,8 @@
 
                 <div class="mt-4 sm:mt-5 text-[10px] sm:text-xs text-gray-500 bg-blue-50 p-3 sm:p-4 rounded-xl border border-blue-100">
                     <p class="flex items-start">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>Salin teks di atas dan paste ke kotak <strong>"Song Description"</strong> (jika tanpa lirik) atau <strong>"Custom Lyrics"</strong> (jika ada lirik) di Suno AI.</span>
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Gunakan tombol copy kecil di atas untuk menyalin <strong>Style of Music</strong> dan <strong>Custom Lyrics</strong> secara terpisah, lalu paste ke masing-masing kotak di Suno AI (Custom Mode).</span>
                     </p>
                 </div>
             </div>
@@ -203,7 +203,7 @@
             mood: document.getElementById('mood'),
             tempo: document.getElementById('tempo'),
             lyrics: document.getElementById('lyrics'),
-            outputArea: document.getElementById('outputArea'),
+            generatedContent: document.getElementById('generatedContent'),
             placeholderText: document.getElementById('placeholderText'),
             copyBtn: document.getElementById('copyBtn'),
             copyIcon: document.getElementById('copyIcon'),
@@ -293,60 +293,94 @@
         }
 
         function generatePrompt() {
-            let parts = [];
-            const topic = els.topic.value;
+            let styleParts = [];
+            const topic = els.topic.value.trim();
             const genre = els.genre.value;
             const vocal = els.vocal.value;
             const mood = els.mood.value;
             const tempo = els.tempo.value;
-            const lyrics = els.lyrics.value;
+            const lyrics = els.lyrics.value.trim();
 
-            if (topic) parts.push(`A song about ${topic}`);
-            if (genre) parts.push(`in the style of ${genre}`);
+            if (genre) styleParts.push(genre);
             if (vocal && vocal !== "Instrumental (No Vocals)") {
-                parts.push(`featuring ${vocal.toLowerCase()}s`);
+                styleParts.push(vocal.toLowerCase());
             } else if (vocal === "Instrumental (No Vocals)") {
-                parts.push(`instrumental only`);
+                styleParts.push("instrumental");
             }
-            if (mood) parts.push(`with a ${mood.toLowerCase()} mood`);
-            if (tempo) parts.push(`played at a ${tempo.toLowerCase()} pace`);
+            if (mood) styleParts.push(mood.toLowerCase());
+            if (tempo) styleParts.push(tempo.toLowerCase());
             if (selectedInstruments.length > 0) {
-                parts.push(`prominently featuring ${selectedInstruments.join(", ")}`);
+                styleParts.push(selectedInstruments.join(", "));
             }
+            if (topic) styleParts.push(`theme: ${topic}`);
 
-            let finalPrompt = parts.join(", ") + ".";
-            
-            if (finalPrompt.length > 1) {
-                finalPrompt = finalPrompt.charAt(0).toUpperCase() + finalPrompt.slice(1);
-            } else {
-                finalPrompt = "";
-            }
+            // This structure matches Suno's expectation perfectly
+            const stylePrompt = styleParts.join(", ");
+            const lyricsPrompt = lyrics;
 
-            if (lyrics && finalPrompt) {
-                finalPrompt += `\n\nLyrics structure or ideas:\n${lyrics}`;
-            } else if (lyrics) {
-                finalPrompt = `Lyrics structure or ideas:\n${lyrics}`;
-            }
+            if (stylePrompt || lyricsPrompt) {
+                currentPrompt = "";
+                if (stylePrompt) currentPrompt += `[STYLE OF MUSIC]\n${stylePrompt}\n\n`;
+                if (lyricsPrompt) currentPrompt += `[CUSTOM LYRICS]\n${lyricsPrompt}`;
+                currentPrompt = currentPrompt.trim();
 
-            currentPrompt = finalPrompt;
+                // Safe strings for inline handlers
+                const safeStyle = stylePrompt.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+                const safeLyrics = lyricsPrompt.replace(/`/g, '\\`').replace(/\$/g, '\\$');
 
-            // Update UI
-            if (currentPrompt) {
-                els.outputArea.textContent = currentPrompt;
+                let outputHTML = "";
+                
+                if (stylePrompt) {
+                    outputHTML += `
+                        <div class="bg-indigo-50 border border-indigo-100 rounded-lg overflow-hidden shadow-sm">
+                            <div class="bg-indigo-100 px-3 py-2 text-[10px] sm:text-xs font-bold text-indigo-800 uppercase tracking-wider flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                                    Style of Music
+                                </div>
+                                <button onclick="copyTextSection(this, \`${safeStyle}\`)" class="text-indigo-700 hover:text-indigo-900 capitalize font-medium bg-white px-2 py-0.5 rounded shadow-sm border border-indigo-200 transition-colors text-[10px] flex items-center">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                    <span>Salin Style</span>
+                                </button>
+                            </div>
+                            <div class="p-3 text-gray-800 font-sans leading-relaxed break-words">${stylePrompt}</div>
+                        </div>
+                    `;
+                }
+
+                if (lyricsPrompt) {
+                    outputHTML += `
+                        <div class="bg-purple-50 border border-purple-100 rounded-lg overflow-hidden shadow-sm">
+                            <div class="bg-purple-100 px-3 py-2 text-[10px] sm:text-xs font-bold text-purple-800 uppercase tracking-wider flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Custom Lyrics
+                                </div>
+                                <button onclick="copyTextSection(this, \`${safeLyrics}\`)" class="text-purple-700 hover:text-purple-900 capitalize font-medium bg-white px-2 py-0.5 rounded shadow-sm border border-purple-200 transition-colors text-[10px] flex items-center">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                    <span>Salin Lirik</span>
+                                </button>
+                            </div>
+                            <div class="p-3 text-gray-800 whitespace-pre-wrap">${lyricsPrompt}</div>
+                        </div>
+                    `;
+                }
+
+                els.generatedContent.innerHTML = outputHTML;
                 els.placeholderText.classList.add('hidden');
                 
-                // Enable buttons
+                // Enable big buttons
                 els.copyBtn.disabled = false;
                 els.copyBtn.className = "w-full py-3 sm:py-3.5 px-4 rounded-xl font-bold text-white shadow-md transition-all duration-200 flex justify-center items-center text-sm sm:text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg hover:-translate-y-0.5";
                 
                 els.saveBtn.disabled = false;
                 els.saveBtn.className = "w-full py-2.5 sm:py-3 px-4 rounded-xl font-bold transition-all duration-200 flex justify-center items-center text-sm sm:text-base bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50";
             } else {
-                els.outputArea.textContent = "";
-                els.outputArea.appendChild(els.placeholderText);
+                currentPrompt = "";
+                els.generatedContent.innerHTML = "";
                 els.placeholderText.classList.remove('hidden');
                 
-                // Disable buttons
+                // Disable big buttons
                 els.copyBtn.disabled = true;
                 els.copyBtn.className = "w-full py-3 sm:py-3.5 px-4 rounded-xl font-bold text-white shadow-md transition-all duration-200 flex justify-center items-center text-sm sm:text-base bg-gray-300 cursor-not-allowed shadow-none";
                 
@@ -355,6 +389,23 @@
             }
         }
 
+        // Global Copy Section function for the small buttons
+        window.copyTextSection = function(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const span = btn.querySelector('span');
+                const originalText = span.textContent;
+                
+                span.textContent = 'Tersalin!';
+                btn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                
+                setTimeout(() => {
+                    span.textContent = originalText;
+                    btn.classList.remove('bg-green-100', 'text-green-700', 'border-green-300');
+                }, 2000);
+            });
+        };
+
+        // Big Copy function for combining both
         function copyToClipboard() {
             if (!currentPrompt) return;
             
@@ -367,7 +418,7 @@
                 els.copyBtn.classList.add('scale-[1.02]');
                 
                 setTimeout(() => {
-                    els.copyText.textContent = "Salin Prompt";
+                    els.copyText.textContent = "Salin Semua (Gabungan)";
                     els.copyIcon.classList.remove('hidden');
                     els.copyBtn.classList.remove('bg-green-500', 'hover:bg-green-600', 'transform', 'scale-[1.02]');
                     els.copyBtn.classList.add('bg-gradient-to-r', 'from-indigo-600', 'to-purple-600');
