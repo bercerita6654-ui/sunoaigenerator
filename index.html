@@ -101,6 +101,7 @@
                             <option value="pop">Bagan Pop (Standar)</option>
                             <option value="rock">Bagan Rock (Solo)</option>
                             <option value="edm">Bagan EDM (Drop)</option>
+                            <option value="worship">Bagan Praise & Worship</option>
                         </select>
                     </div>
                     
@@ -182,12 +183,12 @@
     <!-- Application Logic -->
     <script>
         // Constants
-        const GENRES = ["Pop", "Rock", "Hip Hop", "R&B", "Country", "Jazz", "Electronic", "Classical", "Lo-Fi", "Synthwave", "Metal", "Folk", "Indie", "K-Pop", "Reggae", "Blues", "Acoustic", "Ambient", "Orchestral", "Cinematic", "Punk", "Funk", "Soul", "Disco"];
+        const GENRES = ["Pop", "Rock", "Hip Hop", "R&B", "Country", "Jazz", "Electronic", "Classical", "Lo-Fi", "Synthwave", "Metal", "Folk", "Indie", "K-Pop", "Reggae", "Blues", "Acoustic", "Ambient", "Orchestral", "Cinematic", "Punk", "Funk", "Soul", "Disco", "Praise & Worship", "Gospel", "CCM", "Hymn"];
         const VOCALS = ["Male Vocal", "Female Vocal", "Duet", "Choir", "Robotic/Vocoder", "Gravelly Voice", "High Pitch", "Deep Voice", "Whispering", "Screaming", "Instrumental (No Vocals)"];
-        const MOODS = ["Happy", "Sad", "Energetic", "Relaxing", "Romantic", "Dark", "Epic", "Dreamy", "Aggressive", "Uplifting", "Melancholic", "Spooky", "Chill"];
+        const MOODS = ["Happy", "Sad", "Energetic", "Relaxing", "Romantic", "Dark", "Epic", "Dreamy", "Aggressive", "Uplifting", "Melancholic", "Spooky", "Chill", "Worshipful", "Reverent", "Joyful Praise", "Grateful", "Majestic", "Spiritual"];
         const TEMPOS = ["Slow", "Mid-Tempo", "Fast", "Upbeat", "Varying Tempo"];
-        const INSTRUMENTS = ["Acoustic Guitar", "Electric Guitar", "Piano", "Synthesizer", "Drums", "Bass", "Violin", "Cello", "Saxophone", "Trumpet", "Flute", "Harp"];
-        const TAGS = ["Intro", "Verse", "Pre-Chorus", "Chorus", "Bridge", "Guitar Solo", "Drop", "Outro"];
+        const INSTRUMENTS = ["Acoustic Guitar", "Electric Guitar", "Piano", "Synthesizer", "Drums", "Bass", "Violin", "Cello", "Saxophone", "Trumpet", "Flute", "Harp", "Organ"];
+        const TAGS = ["Intro", "Verse", "Pre-Chorus", "Chorus", "Bridge", "Guitar Solo", "Drop", "Vamp", "Choir", "Outro"];
 
         // State variables
         let selectedInstruments = [];
@@ -286,6 +287,9 @@
                     break;
                 case 'edm':
                     templateText = "[Build Up]\n\n[Verse]\n\n[Pre-Chorus]\n\n[Drop]\n\n[Verse 2]\n\n[Build Up]\n\n[Drop]\n\n[Outro]";
+                    break;
+                case 'worship':
+                    templateText = "[Intro]\n\n[Verse 1]\n\n[Chorus]\n\n[Verse 2]\n\n[Chorus]\n\n[Bridge]\n\n[Bridge]\n\n[Chorus]\n\n[Vamp]\n\n[Outro]";
                     break;
             }
             els.lyrics.value = templateText;
